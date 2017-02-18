@@ -20,6 +20,7 @@ var app = {
         text: $('#message').val(),
         roomname: 'lobby'
       };
+      app.send(message);
       app.renderMessage(message);
     });
 
@@ -50,6 +51,7 @@ var app = {
       contentType: 'application/json',
       success: function (data) {
         console.log('chatterbox: Data fetched');
+        console.log(data);
 
         var messagesArray = data.results;
         messagesArray.forEach( function(element) {
