@@ -2,15 +2,25 @@
 
 var app = {
   init: function() {
-    //$(user) --> handleUsernameClick()
+
+    var src = 'http://parse.sfm6.hackreactor.com/chatterbox/classes/messages/';
     var username = window.location.search.slice(10);
+    var room = {
+      'roomname': $('#roomSelect option:selected').text()
+    };
+
     $('.username').on('click', app.handleUsernameClick);
     $('#send .submit').on('submit', app.handleSubmit);
 
     $('#addroom').click(function(event) {
       event.preventDefault();
       var newRoomName = $('#newroom').val();
-      app.renderRoom(newRoomName);
+      app.renderRoom(JSON.stringify(newRoomName));
+      app.fetch(src, {
+        'roomname': newRoomName
+      });
+      $(`#roomSelect option[value=${newRoomName}]`).attr('selected', 'selected');
+
       $('#newroom').val('');
     });
 
@@ -19,17 +29,28 @@ var app = {
       var message = {
         username: username,
         text: $('#message').val(),
-        roomname: $('#roomSelect option:selected').val()
+        roomname: $('#roomSelect option:selected').text()
       };
       app.send(message);
       $('#message').val('');
-      app.fetch();
+      room = {
+        'roomname': $('#roomSelect option:selected').text()
+      };
+      setTimeout(function() {
+        app.fetch(src, room);
+      }, 500);
     });
 
-    $('#roomSelect').on('change', app.fetch);
+    $('#roomSelect').on('change', function() {
+      room = {
+        'roomname': $('#roomSelect option:selected').text()
+      };
+      app.fetch(src, room);
+    });
+    
 
     //setInterval(app.fetch, 5000);
-    app.fetch();
+    app.fetch(src, {});
   }, 
 
   send: function(message) {
@@ -47,18 +68,16 @@ var app = {
     });
   },
 
-  //uniqueRooms: {}, 
+  uniqueRooms: {}, 
 
-  fetch: function() {
+  fetch: function(source, sortBy) {
     $.ajax({
-      url: 'http://parse.sfm6.hackreactor.com/chatterbox/classes/messages/',
+      url: source,
       type: 'GET',
       data: {
-        order: '-createdAt', //ADD NEGATIVE LATER
+        order: '-username', //'-createdAt', //ADD NEGATIVE LATER
         limit: '100',
-        where: {
-          'roomname': $('#roomSelect option:selected').val()
-        }
+        where: sortBy
       },
       contentType: 'application/json',
       success: function (data) {
@@ -66,22 +85,19 @@ var app = {
         console.log(data);
         $('#chats').html('');
         var messagesArray = data.results;
-        var uniqueRooms = {};
         messagesArray.forEach( function(element) {
-          app.renderMessage(element);
-          if (!uniqueRooms.hasOwnProperty(element.roomname)) {
-            uniqueRooms[element.roomname] = 1;
+          var roomName = JSON.stringify(element.roomname);
+          if (!app.uniqueRooms.hasOwnProperty(roomName)) {
+            app.uniqueRooms[roomName] = 1;
           }
         });
-        //console.log('THIS IS UNIQUE ROOMS: ', uniqueRooms);
-        //console.log('ROOM SELECT: ', typeof $('#roomSelect').val());
-        /*$('#roomSelect option').each(function() {
-          for (var key in uniqueRooms) {
-            if ($(this).val() !== key) {
-              app.renderRoom(key);
-            }
-          }
-        });*/
+        for (var room in app.uniqueRooms) {
+          app.renderRoom(room);
+        }
+
+        messagesArray.forEach( function(element) {
+          app.renderMessage(element);
+        });
       },
       error: function (data) {
         console.error('chatterbox: Failed to fetch data', data);
@@ -98,7 +114,15 @@ var app = {
   },
 
   renderRoom: function(name) {
-    $('#roomSelect').append( `<option value=${name}>${name}</option>`);
+
+    var currentRoomList = []; 
+    $('#roomSelect option').each(function() {
+      currentRoomList.push($(this).text());
+    });
+    name = JSON.parse(name);
+    if (currentRoomList.indexOf(name) === -1) {
+      $('#roomSelect').append( `<option value=${name}>${name}</option>`);
+    }
   },
 
   handleUsernameClick: function() {
