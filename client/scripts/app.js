@@ -11,6 +11,7 @@ var app = {
       event.preventDefault();
       var newRoomName = $('#newroom').val();
       app.renderRoom(newRoomName);
+      $('#newroom').val('');
     });
 
     $('#send').on('click', function(event) {
@@ -21,11 +22,12 @@ var app = {
         roomname: 'lobby'
       };
       app.send(message);
-      app.renderMessage(message);
+      $('#message').val('');
+      app.fetch();
     });
 
-    //setInterval(app.fetch, 5000);
-    app.fetch();
+    setInterval(app.fetch, 5000);
+    // app.fetch();
   }, 
 
   send: function(message) {
@@ -47,12 +49,12 @@ var app = {
     $.ajax({
       url: 'http://parse.sfm6.hackreactor.com/chatterbox/classes/messages/',
       type: 'GET',
-      //data: JSON.stringify(message),
+      data: {order: '-createdAt', limit: '20' },
       contentType: 'application/json',
       success: function (data) {
         console.log('chatterbox: Data fetched');
         console.log(data);
-
+        $('#chats').html('');
         var messagesArray = data.results;
         messagesArray.forEach( function(element) {
           app.renderMessage(element);
@@ -69,7 +71,7 @@ var app = {
   },
 
   renderMessage: function(message) {
-    $('#chats').prepend( `<p class="chat"> <span class="username"> ${message.username} </span> ${message.text} ${message.roomname} </p>` );
+    $('#chats').append( `<p class="chat"> <span class="username"> ${message.username} </span> ${message.text} ${message.roomname} </p>` );
   },
 
   renderRoom: function(name) {
