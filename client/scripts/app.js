@@ -4,12 +4,14 @@ var app = {
   init: function() {
 
     var src = 'http://parse.sfm6.hackreactor.com/chatterbox/classes/messages/';
-    var username = window.location.search.slice(10);
+    var userName = window.location.search.slice(10);
     var room = {
       'roomname': $('#roomSelect option:selected').text()
     };
 
-    $('.username').on('click', app.handleUsernameClick);
+    //app.handleUsernameClick
+    $('#chats').on('click', '.username', app.handleUsernameClick);
+
     $('#send .submit').on('submit', app.handleSubmit);
 
     $('#addroom').click(function(event) {
@@ -27,7 +29,7 @@ var app = {
     $('#send').on('click', function(event) {
       event.preventDefault();
       var message = {
-        username: username,
+        username: userName,
         text: $('#message').val(),
         roomname: $('#roomSelect option:selected').text()
       };
@@ -75,7 +77,7 @@ var app = {
       url: source,
       type: 'GET',
       data: {
-        order: '-username', //'-createdAt', //ADD NEGATIVE LATER
+        order: '-createdAt', //'-createdAt', //ADD NEGATIVE LATER
         limit: '100',
         where: sortBy
       },
@@ -86,7 +88,7 @@ var app = {
         $('#chats').html('');
         var messagesArray = data.results;
         messagesArray.forEach( function(element) {
-          var roomName = JSON.stringify(element.roomname);
+          var roomName = app.escapeHtml(element.roomname);
           if (!app.uniqueRooms.hasOwnProperty(roomName)) {
             app.uniqueRooms[roomName] = 1;
           }
@@ -110,8 +112,16 @@ var app = {
   },
 
   renderMessage: function(message) {
-    $('#chats').append( `<p class="chat"> <span class="username"> ${JSON.stringify(message.username)} </span> ${JSON.stringify(message.text)} ${JSON.stringify(message.roomname)} </p>` );
+    var username = app.escapeHtml(message.username);
+    var mess = app.escapeHtml(message.text);
+    var room = app.escapeHtml(message.roomname);
+    $('#chats').append( `<p class="chat"> <span class="username"> ${username} </span> ${mess} ${room} </p>` );
+    // $('#chats span .username').click(function() {
+    //   console.log('clicked!');
+    // });
   },
+
+  friend: [],
 
   renderRoom: function(name) {
 
@@ -119,18 +129,25 @@ var app = {
     $('#roomSelect option').each(function() {
       currentRoomList.push($(this).text());
     });
-    name = JSON.parse(name);
     if (currentRoomList.indexOf(name) === -1) {
       $('#roomSelect').append( `<option value=${name}>${name}</option>`);
     }
   },
 
   handleUsernameClick: function() {
-
+    console.log('handleUsernameClick');
+    app.friend.push($(this).text());
+    console.log(app.friend);
   },
 
   handleSubmit: function(event) {
     event.preventDefault();
+  },
+
+  escapeHtml: function(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;  
   }
 
 };
