@@ -3,6 +3,7 @@
 var app = {
   init: function() {
     //$(user) --> handleUsernameClick()
+    var username = window.location.search.slice(10);
     $('.username').on('click', app.handleUsernameClick);
     $('#send .submit').on('submit', app.handleSubmit);
 
@@ -11,6 +12,19 @@ var app = {
       var newRoomName = $('#newroom').val();
       app.renderRoom(newRoomName);
     });
+
+    $('#send').on('click', function(event) {
+      event.preventDefault();
+      var message = {
+        username: username,
+        text: $('#message').val(),
+        roomname: 'lobby'
+      };
+      app.renderMessage(message);
+    });
+
+    //setInterval(app.fetch, 5000);
+    app.fetch();
   }, 
 
   send: function(message) {
@@ -28,15 +42,19 @@ var app = {
     });
   },
 
-  fetch: function(source) {
+  fetch: function() {
     $.ajax({
-      url: source,
+      url: 'http://parse.sfm6.hackreactor.com/chatterbox/classes/messages/',
       type: 'GET',
       //data: JSON.stringify(message),
       contentType: 'application/json',
       success: function (data) {
         console.log('chatterbox: Data fetched');
-        console.log(data);
+
+        var messagesArray = data.results;
+        messagesArray.forEach( function(element) {
+          app.renderMessage(element);
+        });
       },
       error: function (data) {
         console.error('chatterbox: Failed to fetch data', data);
@@ -49,11 +67,10 @@ var app = {
   },
 
   renderMessage: function(message) {
-    $('#chats').append( `<p class="chat"> <span class="username"> ${message.user} </span> ${message.text} </p>` );
+    $('#chats').prepend( `<p class="chat"> <span class="username"> ${message.username} </span> ${message.text} ${message.roomname} </p>` );
   },
 
   renderRoom: function(name) {
-    console.log(name);
     $('#roomSelect').append( `<option value= ${name}>${name}</option>`);
   },
 
