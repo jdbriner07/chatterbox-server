@@ -1,5 +1,3 @@
-// $(document).ready(app.init);
-
 var app = {
   init: function() {
 
@@ -9,7 +7,6 @@ var app = {
       'roomname': $('#roomSelect option:selected').text()
     };
 
-    //app.handleUsernameClick
     $('#chats').on('click', '.username', app.handleUsernameClick);
 
     $('#send .submit').on('submit', app.handleSubmit);
@@ -17,7 +14,7 @@ var app = {
     $('#addroom').click(function(event) {
       event.preventDefault();
       var newRoomName = $('#newroom').val();
-      app.renderRoom(newRoomName);
+      app.renderRoom(JSON.stringify(newRoomName));
       app.fetch(src, {
         'roomname': newRoomName
       });
@@ -40,24 +37,28 @@ var app = {
       };
       setTimeout(function() {
         app.fetch(src, room);
-      }, 500);
+      }, 1000);
     });
 
     $('#roomSelect').on('change', function() {
       var rmn = $('#roomSelect option:selected').text();
-      if(rmn === 'All') {
+      if (rmn === 'All') {
         rmn = {};
       }
       room = {
         'roomname': rmn
       };
+      app.clearMessages();
+      console.log('room', room);
+      app.firstLoad = true;
       app.fetch(src, room);
     });
     
+
     app.fetch(src, {});
     setInterval(function() {
       app.fetch(src, room);
-    }, 2000);
+    }, 1000);
   }, 
 
   send: function(message) {
@@ -76,40 +77,71 @@ var app = {
   },
 
   uniqueRooms: {}, 
-
+  id: '',
+  firstLoad: true,
   fetch: function(source, sortBy) {
     $.ajax({
       url: source,
       type: 'GET',
       data: {
-        order: '-createdAt', //'-createdAt', //ADD NEGATIVE LATER
+        order: '-createdAt', 
         limit: '100',
         where: sortBy
       },
       contentType: 'application/json',
       success: function (data) {
         console.log('chatterbox: Data fetched');
-        $('#chats').html('');
+        //console.log(data);
         var messagesArray = data.results;
+
+        // Populate a uniqueRooms object to keep track of individual rooms
         messagesArray.forEach( function(element) {
           var roomName = app.escapeHtml(element.roomname);
           if (!app.uniqueRooms.hasOwnProperty(roomName)) {
             app.uniqueRooms[roomName] = 1;
           }
         });
+
+        // Populate room drop down list
         for (var room in app.uniqueRooms) {
           app.renderRoom(room);
         }
 
-        messagesArray.forEach( function(element) {
-          app.renderMessage(element);
-        });
+        //Populate first load messages
+        if (app.firstLoad) {
+          for (var i = messagesArray.length - 1; i >= 0; i--) {
+            app.renderMessage(messagesArray[i]);
+          }
+          app.id = messagesArray[0].objectId;
+          app.firstLoad = false;
+
+        } else {
+          //Populate new messages
+          var flagNewMessage = false;
+          var sortMessage = _.sortBy(messagesArray, 'createdAt');
+          var filterMessage = _.filter(sortMessage, function(element){
+            if( flagNewMessage){
+              return element;
+            }
+            if(element.objectId === app.id) { 
+              flagNewMessage = true;
+            }
+          })
+          
+          filterMessage.forEach( function(element) {
+            app.renderMessage(element);
+          });
+          
+          app.id = messagesArray[0].objectId;
+        }
       },
       error: function (data) {
         console.error('chatterbox: Failed to fetch data', data);
       }
     });
   },
+
+
 
   clearMessages: function() {
     $('#chats').html('');
@@ -119,7 +151,11 @@ var app = {
     var username = app.escapeHtml(message.username);
     var mess = app.escapeHtml(message.text);
     var room = app.escapeHtml(message.roomname);
-    $('#chats').append( `<p class="chat"> <span class="username"> ${username} </span> ${mess} ${room} </p>` );
+    var friendClass = '';
+    if ( app.friend.indexOf(username) > - 1) {
+      friendClass = 'friend';
+    } 
+    $('#chats').prepend( `<p class="chat"> <span class="username ${friendClass}">${username}</span> ${mess} ${room} </p>` );
   },
 
   friend: [],
@@ -141,9 +177,9 @@ var app = {
       app.friend.push(usernameClick);
     }
     $('.chat .username').each(function() {
-      if (app.friend.indexOf($(this).text()) > -1) {
-        $(this).addClass('friend');
-      }
+      if ( app.friend.indexOf($(this).text()) > -1) {
+        $(this).addClass('friend'); 
+      } 
     });
   },
 
@@ -160,4 +196,3 @@ var app = {
 };
 
 $(document).ready(app.init);
-
