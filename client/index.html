@@ -4,11 +4,14 @@
     <meta charset="utf-8">
     <title>chatterbox</title>
     <link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
 
     <!-- dependencies -->
     <script src="bower_components/jquery/dist/jquery.js"></script>
     <script src="bower_components/underscore/underscore.js"></script>
+    <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
     <script>
+
       // YOU DO NOT NEED TO EDIT THIS CODE
       if (!/(&|\?)username=/.test(window.location.search)) {
         var newSearch = window.location.search;
@@ -24,22 +27,47 @@
     <script src="scripts/app.js"></script>
   </head>
   <body>
-    <div id="main">
-      <h1>chatterbox</h1>
-      <!-- Your HTML goes here! -->
-      <form>
-        <label for="roomSelect">Room</label>
-        <select id="roomSelect">
-          <option value="{}">All</option>
-        </select>
-        <input id="newroom" type="text" name="newroom">
-        <button id="addroom" class="addroom">Add Room</button>
-      </form>
-      <form>
-        <input id="message" type="text" name="message">
-        <input id="send" class="submit" type="submit" name="submit">
-      </form> 
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="nav-container">
+        <a class="navbar-brand" href="#">chatterbox</a>
+        <div class="room-select-container">
+<!--           <div class="dropdown"> -->
+            <label for="roomSelect" class="roomSelect roomSelect-label">Current Room: </label>
+            <select id="roomSelect" class="roomSelect form-control">
+                <option value="{}">All</option>
+            </select>
+<!--           </div> -->
+          <input id="newroom" type="text" name="newroom" placeholder="New Room Name"class="form-control">
+          <button type="button" id="trigger-addroom" class="addroom btn">Add Room</button>
+          <button type="button" id="addroom" class="addroom btn btn-primary">Add Room</button>
+          <button type="button" id="cancel-add-room" class="btn btn-secondary">Cancel</button>
+        </div>
+      </div>
+    </nav>
+    <div id="content">
+      <div id="side">
+        <div class="card">
+          <div class="card-block">
+            <img class="card-img-top" src="https://lh3.ggpht.com/lSLM0xhCA1RZOwaQcjhlwmsvaIQYaP3c5qbDKCgLALhydrgExnaSKZdGa8S3YtRuVA=w300">
+            <div class="card-text-container">
+              <h4 class="card-title username-title"></h4>
+              <p class="card-text profile-text">Prism kombucha flannel lo-fi gochujang migas, yr bespoke thundercats green juice knausgaard. Blue bottle tacos iceland chillwave, tumeric truffaut subway tile deep v etsy. </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="main">
+          <div class="new-message-container">
+            <h4 class="panel-heading panel-heading"></h4>
+            <form>
+              <div class="form-group">
+                <textarea id="message" type="text" role="textbox" name="message" class="form-control" placeholder="What's happening?"></textarea>
+                <input id="send" class="submit btn btn-primary" type="submit" name="submit">
+              </div>
+            </form> 
+          </div>
+        <div id="chats"></div>
+      </div>
     </div>
-    <div id="chats"></div>
-  </body>
+
 </html>
