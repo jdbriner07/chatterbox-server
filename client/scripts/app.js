@@ -17,7 +17,7 @@ var app = {
     $('#addroom').click(function(event) {
       event.preventDefault();
       var newRoomName = $('#newroom').val();
-      app.renderRoom(JSON.stringify(newRoomName));
+      app.renderRoom(newRoomName);
       app.fetch(src, {
         'roomname': newRoomName
       });
@@ -44,15 +44,20 @@ var app = {
     });
 
     $('#roomSelect').on('change', function() {
+      var rmn = $('#roomSelect option:selected').text();
+      if(rmn === 'All') {
+        rmn = {};
+      }
       room = {
-        'roomname': $('#roomSelect option:selected').text()
+        'roomname': rmn
       };
       app.fetch(src, room);
     });
     
-
-    //setInterval(app.fetch, 5000);
     app.fetch(src, {});
+    setInterval(function() {
+      app.fetch(src, room);
+    }, 2000);
   }, 
 
   send: function(message) {
@@ -84,7 +89,6 @@ var app = {
       contentType: 'application/json',
       success: function (data) {
         console.log('chatterbox: Data fetched');
-        console.log(data);
         $('#chats').html('');
         var messagesArray = data.results;
         messagesArray.forEach( function(element) {
@@ -116,9 +120,6 @@ var app = {
     var mess = app.escapeHtml(message.text);
     var room = app.escapeHtml(message.roomname);
     $('#chats').append( `<p class="chat"> <span class="username"> ${username} </span> ${mess} ${room} </p>` );
-    // $('#chats span .username').click(function() {
-    //   console.log('clicked!');
-    // });
   },
 
   friend: [],
@@ -135,9 +136,15 @@ var app = {
   },
 
   handleUsernameClick: function() {
-    console.log('handleUsernameClick');
-    app.friend.push($(this).text());
-    console.log(app.friend);
+    var usernameClick = $(this).text();
+    if (app.friend.indexOf(usernameClick) === -1) {
+      app.friend.push(usernameClick);
+    }
+    $('.chat .username').each(function() {
+      if (app.friend.indexOf($(this).text()) > -1) {
+        $(this).addClass('friend');
+      }
+    });
   },
 
   handleSubmit: function(event) {
