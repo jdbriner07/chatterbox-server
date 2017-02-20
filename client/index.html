@@ -31,12 +31,10 @@
       <div class="nav-container">
         <a class="navbar-brand" href="#">chatterbox</a>
         <div class="room-select-container">
-<!--           <div class="dropdown"> -->
             <label for="roomSelect" class="roomSelect roomSelect-label">Current Room: </label>
             <select id="roomSelect" class="roomSelect form-control">
                 <option value="{}">All</option>
             </select>
-<!--           </div> -->
           <input id="newroom" type="text" name="newroom" placeholder="New Room Name"class="form-control">
           <button type="button" id="trigger-addroom" class="addroom btn">Add Room</button>
           <button type="button" id="addroom" class="addroom btn btn-primary">Add Room</button>
@@ -57,6 +55,7 @@
         </div>
       </div>
       <div id="main">
+        <div class="new-message-panel">
           <div class="new-message-container">
             <h4 class="panel-heading panel-heading"></h4>
             <form>
@@ -66,6 +65,8 @@
               </div>
             </form> 
           </div>
+          <div id="fetch-new-message" class="new-message-alert" numMessage="0"></div>
+        </div>
         <div id="chats"></div>
       </div>
     </div>

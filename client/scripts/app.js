@@ -14,8 +14,13 @@ var app = {
     app.filterRoom();
     app.sendMessage();
     app.profilePanel();
+    // app.fetchNewMessage();
     
     $('#chats').on('click', '.username', app.handleUsernameClick);
+
+    if( $('#fetch-new-message').attr('numMessage') === 0) {
+      $(this).hide();
+    }
     
     var roomFilter = {
       order: '-createdAt', 
@@ -33,7 +38,7 @@ var app = {
     app.fetch(app.src, noRoomFilter);
     
     setInterval(function() {
-      app.fetch(app.src, roomFilter);
+      app.fetch(app.src, noRoomFilter);
     }, 1000);
   }, 
 
@@ -63,13 +68,26 @@ var app = {
         //console.log(data);
         var dataArray = data.results;
 
+
         //Populate first load messages
         if (app.firstLoad) {
           app.initialLoadMessage(dataArray);
 
         } else {
           //Populate new messages
-          app.loadNewMessage(dataArray);
+          var filterArray = _.filter(dataArray, function(obj) {
+            if ( $('#roomSelect option:selected').val() === '{}'){
+              return obj;
+            } else {
+              if(app.escapeHtml(obj.roomname) === $('#roomSelect option:selected').text()) {
+              return obj;
+              }
+            }
+          });
+          app.clearMessages();
+          filterArray.forEach(function(obj) {
+            app.renderMessage(obj)
+          });
         }
       },
       error: function (data) {
@@ -91,7 +109,7 @@ var app = {
     if ( app.friend.indexOf(username) > - 1) {
       friendClass = 'friend';
     } 
-    $('#chats').prepend( `<p class="chat card-block"> <span class="username ${friendClass}">${username}</span><span class="room">${room}</span><span class="create-time">${createTime}</span><span class="message">${mess}</span></p>` );
+    $('#chats').append( `<p class="chat card-block"> <span class="username ${friendClass}">${username}</span><span class="room">${room}</span><span class="create-time">${createTime}</span><span class="message">${mess}</span></p>` );
   },
 
 
@@ -104,6 +122,76 @@ var app = {
       $('#roomSelect').append( `<option value=${name}>${name}</option>`);
     }
   },
+
+  initialLoadMessage: function(array) {
+    for (var i = array.length - 1; i >= 0; i--) {
+      app.renderMessage(array[i]);
+    }
+    app.loadFilterRoom(array);
+    if (array[0] !== undefined ) {
+      app.id = array[0].objectId;
+    }
+    app.firstLoad = false;
+  },
+
+  // loadNewMessage: function(array) {
+  //   if (array[0] !== undefined ) {
+  //     console.log('app id is ', app.id);
+  //     app.id = array[0].objectId;
+  //   }
+  //   var flagNewMessage = false;
+  //   var sortMessage = _.sortBy(array, 'createdAt');
+
+  //   var filterMessage = _.filter(sortMessage, function(element){
+  //     if( flagNewMessage){
+  //       return element;
+  //     }
+  //     if(element.objectId === app.id) { 
+  //      console.log('found same latest ID', element.text);
+  //       flagNewMessage = true;
+  //     }
+  //   });
+    
+  //   filterMessage.forEach( function(element) {
+  //     console.log('passing in elements to be rendered');
+  //     app.renderMessage(element);
+  //   });
+
+  //   if (array[0] !== undefined ) {
+  //     app.id = array[0].objectId;
+  //   }
+  //   var numNewMessage = filterMessage.length;
+  //   var newMessageHtml = `You have ${numNewMessage} new message`;
+    
+  //   $('#fetch-new-message').text(newMessageHtml);
+  //   $('#fetch-new-message').attr('numMessage', numNewMessage);
+  //   if (numNewMessage !== 0 ){
+  //     $('#fetch-new-message').show();
+  //   } else {
+  //     $('#fetch-new-message').hide();
+  //   }
+
+  // },
+
+  // fetchNewMessage: function() {
+  //   $('#fetch-new-message').on('click', function(){
+  //     var roomFilter = {
+  //       order: '-createdAt', 
+  //       limit: '100',
+  //       where: {
+  //         'roomname': $('#roomSelect option:selected').text()
+  //       }
+  //     };
+
+  //   if( $('#fetch-new-message').attr('numMessage') === 0) {
+  //     console.log('hide');
+  //     $('#fetch-new-message').hide();
+  //   }
+
+  //   app.fetch(app.src, roomFilter);
+    
+  //   });
+  // },
 
   sendMessage: function() {
     $('#send .submit').on('submit', app.handleSubmit);
@@ -128,10 +216,6 @@ var app = {
           'roomname': $('#roomSelect option:selected').text()
         }
       };
-      
-      setTimeout(function() {
-        app.fetch(app.src, roomFilter);
-      }, 1000);
     });
   },
 
@@ -169,22 +253,10 @@ var app = {
 
   filterRoom: function() {
     $('#roomSelect').on('change', function() {
-      var rmn = $('#roomSelect option:selected').text();
-      if (rmn === 'All') {
-        rmn = {};
-      }
-      var roomFilter = {
-        order: '-createdAt', 
-        limit: '100',
-        where: {
-          'roomname': rmn
-        }
-      };
-
       app.clearMessages();
       app.firstLoad = true;
       app.messagePanelHeader();
-      app.fetch(app.src, roomFilter);
+      app.fetch(app.src);
     });
   },
 
@@ -234,8 +306,8 @@ var app = {
           'roomname': newRoomName
         }
       };
-      app.renderRoom(app.escapeHtml(newRoomName));
 
+      app.renderRoom(app.escapeHtml(newRoomName));
       app.clearMessages();
       app.firstLoad = true;
       app.fetch(app.src, roomFilter);
@@ -251,38 +323,6 @@ var app = {
     });
   },
 
-  initialLoadMessage: function(array) {
-    for (var i = array.length - 1; i >= 0; i--) {
-      app.renderMessage(array[i]);
-    }
-    app.loadFilterRoom(array);
-    if (array[0] !== undefined ) {
-      app.id = array[0].objectId;
-    }
-    app.firstLoad = false;
-  },
-
-  loadNewMessage: function(array) {
-    var flagNewMessage = false;
-    var sortMessage = _.sortBy(array, 'createdAt');
-
-    var filterMessage = _.filter(sortMessage, function(element){
-      if( flagNewMessage){
-        return element;
-      }
-      if(element.objectId === app.id) { 
-        flagNewMessage = true;
-      }
-    });
-    
-    filterMessage.forEach( function(element) {
-      app.renderMessage(element);
-    });
-
-    if (array[0] !== undefined ) {
-      app.id = array[0].objectId;
-    }
-  }
 
 };
 
