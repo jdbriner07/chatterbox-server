@@ -57,6 +57,13 @@ var requestHandler = function(request, response) {
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
+  if (request.method === 'OPTIONS') {
+    console.log(request.headers);
+    // response.writeHead(getStatusCode + ' OK', request.header);
+    response.writeHead(getStatusCode, headers);
+    //console.log(response.url);
+    //console.log(response);
+  }
   if ( request.method === 'GET') {
     response.writeHead(getStatusCode, headers);
   } else if ( request.method === 'POST') {
