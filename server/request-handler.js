@@ -1,6 +1,6 @@
 var defaultCorsHeaders = {
   'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'access-control-allow-methods': 'GET, POST, PUT, OPTIONS',
   'access-control-allow-headers': 'content-type, accept',
   'access-control-max-age': 10 // Seconds.
 };
@@ -40,6 +40,7 @@ var requestHandler = function(request, response) {
   var getStatusCode = 200;
   var postStatusCode = 201;
   var errorStatusCode = 404;
+  var forbiddenStatusCode = 405;
   // See the note below about CORS headers.
   var headers = defaultCorsHeaders;
 
@@ -64,6 +65,8 @@ var requestHandler = function(request, response) {
       results.push(JSON.parse(chunk.toString()));
     });
     response.writeHead(postStatusCode, headers);
+  } else if (request.method === 'DELETE') {
+    response.writeHead(forbiddenStatusCode, headers);
   }
 
   
