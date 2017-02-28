@@ -61,12 +61,7 @@ var requestHandler = function(request, response) {
   } else if ( request.method === 'POST') {
     var body = [];
     request.on('data', function(chunk) {
-      body.push(chunk);
-    }).on('end', function() {
-      body = Buffer.concat(body).toString();
-      results.push(JSON.parse(body));
-      console.log(body);
-      //array.prototype.slice()
+      results.push(JSON.parse(chunk.toString()));
     });
     response.writeHead(postStatusCode, headers);
   }
@@ -74,8 +69,7 @@ var requestHandler = function(request, response) {
   
 
   var json = JSON.stringify({results: results});
-  console.log(JSON.parse(json));
-
+  
 
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
