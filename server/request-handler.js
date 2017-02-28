@@ -39,7 +39,7 @@ var requestHandler = function(request, response) {
   // The outgoing status.
   var getStatusCode = 200;
   var postStatusCode = 201;
-
+  var errorStatusCode = 404;
   // See the note below about CORS headers.
   var headers = defaultCorsHeaders;
 
@@ -48,6 +48,11 @@ var requestHandler = function(request, response) {
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
   headers['Content-Type'] = 'application/json';
+
+  if (request.url !== '/classes/messages') {
+    response.writeHead(errorStatusCode, headers);
+    response.end('get a proper url');
+  }
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
