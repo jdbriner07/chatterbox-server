@@ -48,42 +48,61 @@ app.init = function () {
 };
 
 app.send = function (message) {
-  $.ajax({
-    url: 'http:127.0.0.1:3000/classes/messages',
-    type: 'POST',
-    data: JSON.stringify(message),
-    contentType: 'application/json',
-    success: function (data) {
-      console.log('chatterbox: Message sent', data);
-    },
-    error: function (data) {
-      console.error('chatterbox: Failed to send message', data);
-    }
-  });
-
+  // $.ajax({
+  //   url: 'http:127.0.0.1:3000/classes/messages',
+  //   type: 'POST',
+  //   data: JSON.stringify(message),
+  //   contentType: 'application/json',
+  //   headers: {
+  //     'access-control-allow-origin': '*'
+  //   },
+  //   success: function (data) {
+  //     console.log('chatterbox: Message sent', data);
+  //   },
+  //   error: function (data) {
+  //     console.error('chatterbox: Failed to send message', data);
+  //   }
+  // });
+  $.post('http:127.0.0.1:3000/classes/messages', JSON.stringify(message), function (data) {
+    console.log('chatterbox: Message sent', data);
+  }, 'application/json');
 };
 
 app.fetchRoom = function () {
   var room = $('.roomSelect')[0].value;
-  $.ajax({
-    url: 'http://127.0.0.1:3000/classes/messages',
-    type: 'GET',
-    // data: {
-    //   where: `{"roomname":"${room}"}`,
-    //   order: '-createdAt'
-    // },
-    contentType: 'application/json',
-    success: app.parseMessage,
+  // $.ajax({
+  //   url: 'http://127.0.0.1:3000/classes/messages',
+  //   type: 'GET',
+  //   // data: {
+  //   //   where: `{"roomname":"${room}"}`,
+  //   //   order: '-createdAt'
+  //   // },
+  //   headers: {
+  //     'access-control-allow-origin': '*'
+  //   },
+  //   contentType: 'application/json',
+  //   success: app.parseMessage,
+  // });
+  $.get('http://127.0.0.1:3000/classes/messages').done( function() {
+    console.log('get');
+    // app.parseMessage(data);
   });
 };
 
 app.fetchAll = function () {
-  $.ajax({
-    url: 'http://127.0.0.1:3000/classes/messages',
-    type: 'GET',
-    // data: 'order=-createdAt',
-    contentType: 'application/json',
-    success: app.parseMessage,
+  // $.ajax({
+  //   url: 'http://127.0.0.1:3000/classes/messages',
+  //   type: 'GET',
+  //   headers: {
+  //     'access-control-allow-origin': '*'
+  //   },
+  //   // data: 'order=-createdAt',
+  //   contentType: 'application/json',
+  //   success: app.parseMessage,
+  // });
+  $.get('http://127.0.0.1:3000/classes/messages').done( function(data) {
+    //console.log('get');
+    app.parseMessage(data);
   });
 };
 
